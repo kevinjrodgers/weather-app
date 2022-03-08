@@ -47,6 +47,7 @@ async function displayForecast(weatherObject) {
     let currentForecastParagraph = document.createElement('p');
     let weatherSection = document.getElementById('current-forecast-section');
     let currentForecastImage = document.createElement('img');
+    let feelsLikeTempPara = document.createElement('p');
     tempSection.innerHTML = '';
     weatherSection.innerHTML = '';
     currentTempParagraph.setAttribute('id', 'current-temp');
@@ -56,13 +57,44 @@ async function displayForecast(weatherObject) {
     minTempParagraph.setAttribute('class', 'temps');
     minTempParagraph.innerHTML = 'Low: ' + Math.round(weatherObject.daily[0].temp.min) + '&deg; ' + currentTempUnit;
     currentForecastParagraph.setAttribute('id', 'current-weather-forecast');
+    feelsLikeTempPara.innerHTML = 'Feels like ' + Math.round(weatherObject.current.feels_like) + '&deg;';
     currentForecastParagraph.innerHTML = weatherObject.current.weather[0].main;
-    currentForecastImage.setAttribute('src', 'images/clear-day-128.png');
+    let isAMorPM = new Date(weatherObject.current.dt*1000).getHours();
+    //console.log(isAMorPM + " is the hour");
+    let currentWeatherType = weatherObject.current.weather[0].main;
+    let currentWeatherTypeIcon;
+    switch(currentWeatherType) {
+        // When the weather is Clear, show sun icon if hour is between 6am-6pm, otherwise show moon icon
+        case 'Clear':
+            if(isAMorPM >= 6 && isAMorPM <= 18) {
+                currentWeatherTypeIcon = 'clear-day-128.png';
+            } else {
+                currentWeatherTypeIcon = 'clear-night-128.png';
+            }
+            break;
+        case 'Clouds':
+            currentWeatherTypeIcon = 'clouds-128.png';
+            break;
+        case 'Drizzle':
+            currentWeatherTypeIcon = 'drizzle-128.png';
+            break;
+        case 'Rain':
+            currentWeatherTypeIcon = 'rain-128.png';
+            break;
+        case 'Thunderstorm':
+            currentWeatherTypeIcon = 'thunderstorm-128.png';
+            break;
+        case 'Atmosphere':
+            currentWeatherTypeIcon = 'hazy-128.png';
+            break;
+    }
+    currentForecastImage.setAttribute('src', 'images/' + currentWeatherTypeIcon);
     tempSection.appendChild(currentTempParagraph);
-    tempSection.appendChild(maxTempParagraph);
-    tempSection.appendChild(minTempParagraph);
+    tempSection.appendChild(feelsLikeTempPara);
+    //tempSection.appendChild(maxTempParagraph);
+    //tempSection.appendChild(minTempParagraph);
     weatherSection.appendChild(currentForecastImage);
-    weatherSection.appendChild(currentForecastParagraph);
+    //weatherSection.appendChild(currentForecastParagraph);
     // Weekly Forecast -----------------------------------------------------------------------------------------------------
     let weeklyForecastList = document.getElementById('weekly-forecast-list');
     weeklyForecastList.innerHTML = '';
@@ -91,7 +123,7 @@ async function displayForecast(weatherObject) {
                 weeklyWeatherIcon = 'hazy-64.png';
                 break;
         }
-        console.log(weatherType);
+        //console.log(weatherType);
         let weekdayText;
         switch(weekdayNum) {
             case 0: 
@@ -144,15 +176,14 @@ async function findLatAndLong(locationName) {
         limit 	optional 	Number of the locations in the API response (up to 5 results can be returned in the API response)
         */
         let weatherAPIId = 'bc21462a4e2db9c1ba7c412127c33e2c';
-        let fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + '&limit=10&appid=' + weatherAPIId;
+        let fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + '&appid=' + weatherAPIId;
         const response = await fetch(fetchString, {mode: 'cors'});
         const locationData = await response.json();
         console.log(locationData);
-        //console.log(locationData);
         let locationLatitude = locationData[0].lat;
         let locationLongitude = locationData[0].lon;
         let locationHeader = document.getElementById('location-header');
-        locationHeader.innerHTML = locationData[0].name + ', ' + locationData[0].country;
+        locationHeader.innerHTML = locationData[0].name + ', ' + locationData[0].state+ ', ' + locationData[0].country;
         return {
             latitude: locationLatitude,
             longitude: locationLongitude

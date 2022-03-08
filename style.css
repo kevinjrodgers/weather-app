@@ -87,6 +87,10 @@ html, body {
     border-bottom: 2px solid #afa292;
 }
 
+.daily-forecast p {
+    width: 70px;
+}
+
 #weekly-forecast-image {
     width: 64px;
     height: 64px;
