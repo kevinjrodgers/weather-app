@@ -7,10 +7,16 @@ Lat/Long based on zip code: http://api.openweathermap.org/geo/1.0/zip?zip={zip c
 //For the C/F switcher, use the existing fetch/response object's values to change to the desired temperature unit
 
 let currentTempUnit = 'F';
+let stateList = document.getElementById('state-list');
+let countryList = document.getElementById('country-list');
+//let countrySelection = countryList.options[0].value;
+//let stateSelection = stateList.options[0].value;
 
 let locationSubmitButton = document.getElementById('submit-location');
 locationSubmitButton.addEventListener('click', async function(event) {
     event.preventDefault();
+    countrySelection = countryList.options[0].value;
+    stateSelection = stateList.options[0].value;
     let userInput = document.getElementById('location').value;
     const locationObject = await findLatAndLong(userInput);
     const weatherObject = await getWeather(locationObject.latitude, locationObject.longitude);
@@ -87,6 +93,9 @@ async function displayForecast(weatherObject) {
         case 'Atmosphere':
             currentWeatherTypeIcon = 'hazy-128.png';
             break;
+        case 'Snow':
+            currentWeatherTypeIcon = 'snow-128.png';
+            break;
     }
     currentForecastImage.setAttribute('src', 'images/' + currentWeatherTypeIcon);
     tempSection.appendChild(currentTempParagraph);
@@ -122,6 +131,9 @@ async function displayForecast(weatherObject) {
             case 'Atmosphere':
                 weeklyWeatherIcon = 'hazy-64.png';
                 break;
+            case 'Snow':
+                weeklyWeatherIcon = 'snow-64.png';
+            break;
         }
         //console.log(weatherType);
         let weekdayText;
@@ -175,8 +187,18 @@ async function findLatAndLong(locationName) {
         appid 	required 	Your unique API key (you can always find it on your account page under the "API key" tab)
         limit 	optional 	Number of the locations in the API response (up to 5 results can be returned in the API response)
         */
+        stateSelection = stateList.options[stateList.selectedIndex].value;
+        countrySelection = countryList.options[countryList.selectedIndex].value;
         let weatherAPIId = 'bc21462a4e2db9c1ba7c412127c33e2c';
-        let fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + '&appid=' + weatherAPIId;
+        let fetchString;
+        if(countrySelection != 'US') {
+            fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + countrySelection + '&appid=' + weatherAPIId;
+            console.log(fetchString);
+        } else {
+            // Default country is US
+            fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + stateSelection + ',' + countrySelection + '&appid=' + weatherAPIId;
+            console.log(fetchString);
+        }
         const response = await fetch(fetchString, {mode: 'cors'});
         const locationData = await response.json();
         console.log(locationData);
@@ -194,9 +216,10 @@ async function findLatAndLong(locationName) {
 }
 
 window.onload = async function() {
-    const locationObject = await findLatAndLong('Los Angeles');
+    const locationObject = await findLatAndLong('Sacramento');
     const weatherObject = await getWeather(locationObject.latitude, locationObject.longitude);
     await displayForecast(weatherObject);
     //console.log('apples and cheese are: ' + weatherObject.daily[0].temp.max);
 }
+
 

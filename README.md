@@ -8,5 +8,7 @@ Technologies used:
     OpenWeatherMap's Geocoding API
     Visual Code
     Iconfinder.com
+    List of Countries: https://www.technicalkeeda.com/html-tutorials/all-countries-drop-down-list-in-html
+    List of US States: https://gist.github.com/akrug23/6631559
 
 One of the challenges I faced was how to implement the date. OpenWeatherMap's One Call API puts the date for each forecast in epoch time, so having to convert it was challenging.
