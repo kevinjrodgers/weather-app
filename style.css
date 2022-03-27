@@ -14,6 +14,8 @@ html, body {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    opacity: 0;
+    transition-duration: 1s;
 }
 
 #top-section {
@@ -23,7 +25,44 @@ html, body {
     flex-direction: row;
     background-color: rgba(0, 0, 0, 0.3);
     align-items: center;
-    height: 8%;
+    height: 50px;
+    position: relative;
+    z-index: 2;
+}
+
+#hamburger-icon {
+    border-radius: 0 3px 3px 0;
+    padding-left: 10px;
+}
+
+#hamburger-icon:hover {
+    cursor: pointer;
+    background-color: #E5D4C0;
+    transition-duration: .5s;
+}
+
+#hamburger-menu-form {
+    /*background-color: #756048;*/
+    background-color: #60935D;
+    width: 350px;
+    position: absolute;
+    top: 74.15px;
+    border-radius: 0 0 7px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 25px;
+    padding-bottom: 25px;
+}
+
+.hamburger-menu {
+    left: -100%;
+    transition-duration: .7s;
+}
+
+.hamburger-active {
+    transition-duration: .7s;
+    left: 0;
 }
 
 #current-temp {
@@ -50,19 +89,23 @@ html, body {
 
 #weather-form {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     margin-right: 8px;
-    gap: 5px;
+    gap: 7px;
+    width: 200px;
+}
+
+#weather-form > input, select {
+    font-size: 1.2em;
+    background-color: white;
+    border: 2px darkslategray solid;
+    border-radius: 4px;
 }
 
 #location {
     border: black 1px solid;
     border-radius: 5px;
     background-color: white;
-}
-
-#current-forecast-section {
-
 }
 
 #weekly-forecast-section {

@@ -9,19 +9,52 @@ Lat/Long based on zip code: http://api.openweathermap.org/geo/1.0/zip?zip={zip c
 let currentTempUnit = 'F';
 let stateList = document.getElementById('state-list');
 let countryList = document.getElementById('country-list');
+let topSection = document.getElementById('top-section');
+let hamburgerForm = document.getElementById('hamburger-menu-form');
+let hamburgerIcon = document.getElementById('hamburger-icon');
+let mainContent = document.getElementById('content');
+console.log(topSection.offsetHeight+'px' + " is the height");
+hamburgerForm.style.top =  topSection.offsetHeight+'px'; 
 //let countrySelection = countryList.options[0].value;
 //let stateSelection = stateList.options[0].value;
 
 let locationSubmitButton = document.getElementById('submit-location');
 locationSubmitButton.addEventListener('click', async function(event) {
     event.preventDefault();
+    hamburgerForm.classList.toggle('hamburger-active');
     countrySelection = countryList.options[0].value;
     stateSelection = stateList.options[0].value;
     let userInput = document.getElementById('location').value;
     const locationObject = await findLatAndLong(userInput);
     const weatherObject = await getWeather(locationObject.latitude, locationObject.longitude);
     await displayForecast(weatherObject);
+    // Needs to hide the information that is loading in
 });
+
+countryList.addEventListener('click', async function(event) {
+    event.preventDefault();
+    let currentlySelectedCountry = countryList.options[countryList.selectedIndex].value;
+    console.log(currentlySelectedCountry);
+    if(currentlySelectedCountry != 'US') {
+        stateList.setAttribute('disabled', true);
+    }
+    else {
+        stateList.removeAttribute('disabled');
+    }
+});
+
+hamburgerIcon.addEventListener('click', async function(event) {
+    event.preventDefault();
+    hamburgerForm.classList.toggle('hamburger-active');
+});
+
+mainContent.addEventListener('click', function(event) {
+   event.preventDefault();
+   if(hamburgerForm.classList.contains('hamburger-active')) {
+        hamburgerForm.classList.toggle('hamburger-active');
+   }
+});
+
 
 async function getWeather(lat, lon) {
     try {
@@ -93,6 +126,9 @@ async function displayForecast(weatherObject) {
         case 'Atmosphere':
             currentWeatherTypeIcon = 'hazy-128.png';
             break;
+        case 'Haze':
+            currentWeatherTypeIcon = 'hazy-128.png';
+            break;
         case 'Snow':
             currentWeatherTypeIcon = 'snow-128.png';
             break;
@@ -103,7 +139,6 @@ async function displayForecast(weatherObject) {
     //tempSection.appendChild(maxTempParagraph);
     //tempSection.appendChild(minTempParagraph);
     weatherSection.appendChild(currentForecastImage);
-    //weatherSection.appendChild(currentForecastParagraph);
     // Weekly Forecast -----------------------------------------------------------------------------------------------------
     let weeklyForecastList = document.getElementById('weekly-forecast-list');
     weeklyForecastList.innerHTML = '';
@@ -131,11 +166,13 @@ async function displayForecast(weatherObject) {
             case 'Atmosphere':
                 weeklyWeatherIcon = 'hazy-64.png';
                 break;
+            case 'Haze':
+                weeklyWeatherIcon = 'hazy-64.png';
+                break;
             case 'Snow':
                 weeklyWeatherIcon = 'snow-64.png';
             break;
         }
-        //console.log(weatherType);
         let weekdayText;
         switch(weekdayNum) {
             case 0: 
@@ -176,6 +213,8 @@ async function displayForecast(weatherObject) {
         dailyForecast.appendChild(dailyForecastMinTemp);
         dailyForecast.appendChild(dailyForecastImage);
         weeklyForecastList.appendChild(dailyForecast);
+        // Will reveal the loaded information
+        mainContent.style.opacity = "1"; 
     }
 }
 
@@ -183,10 +222,11 @@ async function findLatAndLong(locationName) {
     try {
         /*
         http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
-        q 	required 	City name, state code (only for the US) and country code divided by comma. Please use ISO 3166 country codes.
+        q 	    required 	City name, state code (only for the US) and country code divided by comma. Please use ISO 3166 country codes.
         appid 	required 	Your unique API key (you can always find it on your account page under the "API key" tab)
         limit 	optional 	Number of the locations in the API response (up to 5 results can be returned in the API response)
         */
+        mainContent.style.opacity = "0"; 
         stateSelection = stateList.options[stateList.selectedIndex].value;
         countrySelection = countryList.options[countryList.selectedIndex].value;
         let weatherAPIId = 'bc21462a4e2db9c1ba7c412127c33e2c';
@@ -211,7 +251,7 @@ async function findLatAndLong(locationName) {
             longitude: locationLongitude
         };
     } catch (error) {
-        alert('latNlon error');
+        alert('Invalid Location');
     }
 }
 
@@ -219,6 +259,7 @@ window.onload = async function() {
     const locationObject = await findLatAndLong('Sacramento');
     const weatherObject = await getWeather(locationObject.latitude, locationObject.longitude);
     await displayForecast(weatherObject);
+    mainContent.style.opacity = "1"; 
     //console.log('apples and cheese are: ' + weatherObject.daily[0].temp.max);
 }
 
