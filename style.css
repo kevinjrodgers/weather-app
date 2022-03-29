@@ -65,6 +65,42 @@ html, body {
     left: 0;
 }
 
+.slider-div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: center;
+    gap: 5px;
+    margin-right: 10px;
+}
+
+.slider-container {
+    width: 40px;
+    height: 20px;
+    background-color: #1A181B;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    transition-duration: .5s;
+}
+
+.slider-container-toggle {
+    background-color: #555;
+}
+
+.slider-square {
+    width: 15px;
+    height: 15px;
+    background-color: white;
+    border-radius: 50%;
+    transition-duration: .35s;
+}
+
+.slider-move-square {
+    transform: translateX(25px);
+}
+
 #current-temp {
     font-size: 5em;
     margin: 0;
@@ -109,14 +145,14 @@ html, body {
 }
 
 #weekly-forecast-section {
-    display: flex;
-    flex-direction: column;
     width: 100%;
-    justify-content: center;
     
 }
 
 #weekly-forecast-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     width: 90%;
     list-style-type: none;
     margin: 0 auto;
@@ -135,7 +171,81 @@ html, body {
     width: 70px;
 }
 
-#weekly-forecast-image {
+.day-num-para {
+    font-size: 1.25em;
+    font-weight: bold;
+}
+
+.daily-temp-div {
+    display: flex; 
+    gap: 10px;
+    text-align: center;
+}
+
+.daily-temp-div p {
+    width: 50px;
+}
+
+.weekly-forecast-image {
     width: 64px;
     height: 64px;
+}
+
+@media only screen and (min-width: 650px) {
+    #weekly-forecast-list {
+        flex-direction: row;
+        justify-content: center;
+        /*border-top: 2px solid #afa292;*/
+    }
+    
+    .daily-forecast {
+        flex-direction: column;
+        border: none;
+    }
+
+    .day-num-para {
+        text-align: center;
+    }
+
+    .daily-temp-div {
+        gap: 2px;
+    }
+
+    #weekly-forecast-list {
+        gap: 40px;
+        overflow-x: scroll;
+        width: 90%;
+        justify-content: start;
+    }
+
+
+     /* width */
+::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  } 
+}
+
+
+@media only screen and (min-width: 1250px) {
+    #weekly-forecast-list {
+        gap: 40px;
+        overflow-x: auto;
+        width: 90%;
+        justify-content: center;
+    }
 }

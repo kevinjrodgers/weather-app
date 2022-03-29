@@ -13,6 +13,7 @@ let topSection = document.getElementById('top-section');
 let hamburgerForm = document.getElementById('hamburger-menu-form');
 let hamburgerIcon = document.getElementById('hamburger-icon');
 let mainContent = document.getElementById('content');
+let slider = document.getElementById('slider');
 console.log(topSection.offsetHeight+'px' + " is the height");
 hamburgerForm.style.top =  topSection.offsetHeight+'px'; 
 //let countrySelection = countryList.options[0].value;
@@ -55,6 +56,21 @@ mainContent.addEventListener('click', function(event) {
    }
 });
 
+slider.addEventListener('click', function(event) {
+    event.preventDefault();
+    let sliderID = document.getElementById('slider-id');
+    let slider= document.getElementById('slider');
+    sliderID.classList.toggle('slider-move-square');
+    slider.classList.toggle('slider-container-toggle');
+    slider-container-toggle
+    if(currentTempUnit == 'C') {
+        currentTempUnit = 'F';
+    } else if(currentTempUnit == 'F') {
+        currentTempUnit = 'C';
+    }
+    
+});
+
 
 async function getWeather(lat, lon) {
     try {
@@ -66,7 +82,7 @@ async function getWeather(lat, lon) {
         } else {
             tempTypeString = 'imperial';
         }
-        let fetchString = 'https://api.openweathermap.org/data/2.5/onecall?lat=' + lat + '&lon=' + lon + '&exclude=minutely,hourly&appid=' + weatherAPIId + '&units=' + tempTypeString;
+        let fetchString = 'https://api.openweathermap.org/data/2.5/onecall?lat=' + lat + '&lon=' + lon + '&exclude=minutely&appid=' + weatherAPIId + '&units=' + tempTypeString;
         const response = await fetch(fetchString, {mode: 'cors'});
         const weatherData = await response.json();
         return weatherData;
@@ -126,6 +142,9 @@ async function displayForecast(weatherObject) {
         case 'Atmosphere':
             currentWeatherTypeIcon = 'hazy-128.png';
             break;
+        case 'Mist':
+            currentWeatherTypeIcon = 'drizzle-128.png';
+            break;
         case 'Haze':
             currentWeatherTypeIcon = 'hazy-128.png';
             break;
@@ -169,6 +188,9 @@ async function displayForecast(weatherObject) {
             case 'Haze':
                 weeklyWeatherIcon = 'hazy-64.png';
                 break;
+            case 'Mist':
+                weeklyWeatherIcon = 'drizzle-128.png';
+            break;
             case 'Snow':
                 weeklyWeatherIcon = 'snow-64.png';
             break;
@@ -197,20 +219,24 @@ async function displayForecast(weatherObject) {
                 weekdayText = 'Sat';
                 break;
         }
+        let dailyTempDiv = document.createElement('div');
         let dailyForecast = document.createElement('li');
         dailyForecast.setAttribute('class', 'daily-forecast');
         let dailyForecastMaxTemp = document.createElement('p');
         let dailyForecastMinTemp = document.createElement('p');
         let dayNumPara = document.createElement('p');
         let dailyForecastImage = document.createElement('img');
-        dailyForecastImage.setAttribute('id', 'weekly-forecast-image');
+        dayNumPara.setAttribute('class', 'day-num-para');
+        dailyForecastImage.setAttribute('class', 'weekly-forecast-image');
         dailyForecastImage.setAttribute('src', 'images/' + weeklyWeatherIcon);
         dailyForecastMaxTemp.innerHTML = 'H: ' + Math.round(weatherObject.daily[dayNum].temp.max) + '&deg;';
         dailyForecastMinTemp.innerHTML = 'L: ' + Math.round(weatherObject.daily[dayNum].temp.min) + '&deg;';
         dayNumPara.innerHTML = weekdayText + ' ' + dayOfMonth;
+        dailyTempDiv.setAttribute('class', 'daily-temp-div');
+        dailyTempDiv.appendChild(dailyForecastMaxTemp);
+        dailyTempDiv.appendChild(dailyForecastMinTemp);
         dailyForecast.appendChild(dayNumPara);
-        dailyForecast.appendChild(dailyForecastMaxTemp);
-        dailyForecast.appendChild(dailyForecastMinTemp);
+        dailyForecast.appendChild(dailyTempDiv);
         dailyForecast.appendChild(dailyForecastImage);
         weeklyForecastList.appendChild(dailyForecast);
         // Will reveal the loaded information
@@ -260,7 +286,6 @@ window.onload = async function() {
     const weatherObject = await getWeather(locationObject.latitude, locationObject.longitude);
     await displayForecast(weatherObject);
     mainContent.style.opacity = "1"; 
-    //console.log('apples and cheese are: ' + weatherObject.daily[0].temp.max);
 }
 
 
