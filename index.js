@@ -14,12 +14,12 @@ let hamburgerForm = document.getElementById('hamburger-menu-form');
 let hamburgerIcon = document.getElementById('hamburger-icon');
 let mainContent = document.getElementById('content');
 let slider = document.getElementById('slider');
+let weatherObject;
 console.log(topSection.offsetHeight+'px' + " is the height");
 hamburgerForm.style.top =  topSection.offsetHeight+'px'; 
-//let countrySelection = countryList.options[0].value;
-//let stateSelection = stateList.options[0].value;
-
 let locationSubmitButton = document.getElementById('submit-location');
+
+/* Event Listeners ---------------------------------------------------------------------------------------------------- */
 locationSubmitButton.addEventListener('click', async function(event) {
     event.preventDefault();
     hamburgerForm.classList.toggle('hamburger-active');
@@ -27,9 +27,8 @@ locationSubmitButton.addEventListener('click', async function(event) {
     stateSelection = stateList.options[0].value;
     let userInput = document.getElementById('location').value;
     const locationObject = await findLatAndLong(userInput);
-    const weatherObject = await getWeather(locationObject.latitude, locationObject.longitude);
+    weatherObject = await getWeatherObject(locationObject.latitude, locationObject.longitude);
     await displayForecast(weatherObject);
-    // Needs to hide the information that is loading in
 });
 
 countryList.addEventListener('click', async function(event) {
@@ -62,17 +61,54 @@ slider.addEventListener('click', function(event) {
     let slider= document.getElementById('slider');
     sliderID.classList.toggle('slider-move-square');
     slider.classList.toggle('slider-container-toggle');
-    slider-container-toggle
     if(currentTempUnit == 'C') {
         currentTempUnit = 'F';
     } else if(currentTempUnit == 'F') {
         currentTempUnit = 'C';
     }
-    
+    console.log(currentTempUnit);
 });
 
+/* Functions ---------------------------------------------------------------------------------------------------- */
 
-async function getWeather(lat, lon) {
+async function findLatAndLong(locationName) {
+    try {
+        /*
+        http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
+        q 	    required 	City name, state code (only for the US) and country code divided by comma. Please use ISO 3166 country codes.
+        appid 	required 	Your unique API key (you can always find it on your account page under the "API key" tab)
+        limit 	optional 	Number of the locations in the API response (up to 5 results can be returned in the API response)
+        */
+        mainContent.style.opacity = "0"; 
+        stateSelection = stateList.options[stateList.selectedIndex].value;
+        countrySelection = countryList.options[countryList.selectedIndex].value;
+        let weatherAPIId = 'bc21462a4e2db9c1ba7c412127c33e2c';
+        let fetchString;
+        if(countrySelection != 'US') {
+            fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + countrySelection + '&appid=' + weatherAPIId;
+            console.log(fetchString);
+        } else {
+            // Default country is US
+            fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + stateSelection + ',' + countrySelection + '&appid=' + weatherAPIId;
+            console.log(fetchString);
+        }
+        const response = await fetch(fetchString, {mode: 'cors'});
+        const locationData = await response.json();
+        console.log(locationData);
+        let locationLatitude = locationData[0].lat;
+        let locationLongitude = locationData[0].lon;
+        let locationHeader = document.getElementById('location-header');
+        locationHeader.innerHTML = locationData[0].name + ', ' + locationData[0].state+ ', ' + locationData[0].country;
+        return {
+            latitude: locationLatitude,
+            longitude: locationLongitude
+        };
+    } catch (error) {
+        alert('Invalid Location');
+    }
+}
+
+async function getWeatherObject(lat, lon) {
     try {
         // https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={API key}
         let weatherAPIId = 'bc21462a4e2db9c1ba7c412127c33e2c';
@@ -87,7 +123,7 @@ async function getWeather(lat, lon) {
         const weatherData = await response.json();
         return weatherData;
     } catch (error) {
-        alert('getWeather error');
+        alert('getWeatherObject error');
     }
 }
 
@@ -244,48 +280,20 @@ async function displayForecast(weatherObject) {
     }
 }
 
-async function findLatAndLong(locationName) {
-    try {
-        /*
-        http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
-        q 	    required 	City name, state code (only for the US) and country code divided by comma. Please use ISO 3166 country codes.
-        appid 	required 	Your unique API key (you can always find it on your account page under the "API key" tab)
-        limit 	optional 	Number of the locations in the API response (up to 5 results can be returned in the API response)
-        */
-        mainContent.style.opacity = "0"; 
-        stateSelection = stateList.options[stateList.selectedIndex].value;
-        countrySelection = countryList.options[countryList.selectedIndex].value;
-        let weatherAPIId = 'bc21462a4e2db9c1ba7c412127c33e2c';
-        let fetchString;
-        if(countrySelection != 'US') {
-            fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + countrySelection + '&appid=' + weatherAPIId;
-            console.log(fetchString);
-        } else {
-            // Default country is US
-            fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + stateSelection + ',' + countrySelection + '&appid=' + weatherAPIId;
-            console.log(fetchString);
-        }
-        const response = await fetch(fetchString, {mode: 'cors'});
-        const locationData = await response.json();
-        console.log(locationData);
-        let locationLatitude = locationData[0].lat;
-        let locationLongitude = locationData[0].lon;
-        let locationHeader = document.getElementById('location-header');
-        locationHeader.innerHTML = locationData[0].name + ', ' + locationData[0].state+ ', ' + locationData[0].country;
-        return {
-            latitude: locationLatitude,
-            longitude: locationLongitude
-        };
-    } catch (error) {
-        alert('Invalid Location');
-    }
-}
 
+/* Initial Setup ------------------------------------------------------------------------------------------------------------ */
 window.onload = async function() {
     const locationObject = await findLatAndLong('Sacramento');
-    const weatherObject = await getWeather(locationObject.latitude, locationObject.longitude);
+    weatherObject = await getWeatherObject(locationObject.latitude, locationObject.longitude);
     await displayForecast(weatherObject);
     mainContent.style.opacity = "1"; 
+}
+
+async function dynamicallyGenerateWeatherInfo() {
+    // Need to get the input from the location fields
+    // Get the location's lat and lon
+    // Use lat and lon to get the weather object from the OpenWeather API
+    // Dynamically populate the page
 }
 
 
