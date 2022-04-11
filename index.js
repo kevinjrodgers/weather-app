@@ -6,7 +6,6 @@ Lat/Long based on zip code: http://api.openweathermap.org/geo/1.0/zip?zip={zip c
 
 //For the C/F switcher, use the existing fetch/response object's values to change to the desired temperature unit
 
-let currentTempUnit = 'F';
 let stateList = document.getElementById('state-list');
 let countryList = document.getElementById('country-list');
 let topSection = document.getElementById('top-section');
@@ -14,24 +13,48 @@ let hamburgerForm = document.getElementById('hamburger-menu-form');
 let hamburgerIcon = document.getElementById('hamburger-icon');
 let mainContent = document.getElementById('content');
 let slider = document.getElementById('slider');
+let locationSubmitButton = document.getElementById('submit-location');
+let locationHeader = document.getElementById('location-header');
 let weatherObject;
+let currentTempUnit = 'F';
 console.log(topSection.offsetHeight+'px' + " is the height");
 hamburgerForm.style.top =  topSection.offsetHeight+'px'; 
-let locationSubmitButton = document.getElementById('submit-location');
+
+
+function Location(locationName, locationState, locationCountry, locationLat, locationLon) {
+    this.locationName = locationName;
+    this.locationState = locationState;
+    this.locationCountry = locationCountry;
+    this.locationLat = locationLat;
+    this.locationLon = locationLon;
+}
+
+// Used when no favorite is found; used for loading the page the very first time
+var defaultLocation = new Location("Sacramento", "California", "US", 38.5811, -121.4939);
+// Used for loading the page for any subsquent times or for loading the user's favorite place
+var favoritedLocation = new Location("Sacramento", "California", "US", 38.5811, -121.4939);
+// Used for new location searches
+var currentLocation = new Location();
+
 
 /* Event Listeners ---------------------------------------------------------------------------------------------------- */
 locationSubmitButton.addEventListener('click', async function(event) {
+    // Will grab data from the country and state lists, find the location, and display it
     event.preventDefault();
     hamburgerForm.classList.toggle('hamburger-active');
     countrySelection = countryList.options[0].value;
     stateSelection = stateList.options[0].value;
     let userInput = document.getElementById('location').value;
+    currentLocation.locationName = userInput;
+    currentLocation.locationCountry = countrySelection;
+    currentLocation.locationState = stateSelection;
     const locationObject = await findLatAndLong(userInput);
     weatherObject = await getWeatherObject(locationObject.latitude, locationObject.longitude);
     await displayForecast(weatherObject);
 });
 
 countryList.addEventListener('click', async function(event) {
+    // If the selected country is not the United States, it will disable choosing a US state
     event.preventDefault();
     let currentlySelectedCountry = countryList.options[countryList.selectedIndex].value;
     console.log(currentlySelectedCountry);
@@ -44,18 +67,21 @@ countryList.addEventListener('click', async function(event) {
 });
 
 hamburgerIcon.addEventListener('click', async function(event) {
+    // Hides or shows the Hamburger side menu
     event.preventDefault();
     hamburgerForm.classList.toggle('hamburger-active');
 });
 
 mainContent.addEventListener('click', function(event) {
+    // Hides the Hamburger side menu
    event.preventDefault();
    if(hamburgerForm.classList.contains('hamburger-active')) {
         hamburgerForm.classList.toggle('hamburger-active');
    }
 });
 
-slider.addEventListener('click', function(event) {
+slider.addEventListener('click', async function(event) {
+    // Changes the value of currentTempUnit between C and F, will reload the main content
     event.preventDefault();
     let sliderID = document.getElementById('slider-id');
     let slider= document.getElementById('slider');
@@ -66,7 +92,8 @@ slider.addEventListener('click', function(event) {
     } else if(currentTempUnit == 'F') {
         currentTempUnit = 'C';
     }
-    console.log(currentTempUnit);
+    weatherObject = await getWeatherObject(currentLocation.locationLat, currentLocation.locationLon);
+    await displayForecast(weatherObject);
 });
 
 /* Functions ---------------------------------------------------------------------------------------------------- */
@@ -97,7 +124,8 @@ async function findLatAndLong(locationName) {
         console.log(locationData);
         let locationLatitude = locationData[0].lat;
         let locationLongitude = locationData[0].lon;
-        let locationHeader = document.getElementById('location-header');
+        currentLocation.locationLat = locationData[0].lat;
+        currentLocation.locationLon = locationData[0].lon;
         locationHeader.innerHTML = locationData[0].name + ', ' + locationData[0].state+ ', ' + locationData[0].country;
         return {
             latitude: locationLatitude,
@@ -151,86 +179,96 @@ async function displayForecast(weatherObject) {
     feelsLikeTempPara.innerHTML = 'Feels like ' + Math.round(weatherObject.current.feels_like) + '&deg;';
     currentForecastParagraph.innerHTML = weatherObject.current.weather[0].main;
     let isAMorPM = new Date(weatherObject.current.dt*1000).getHours();
-    //console.log(isAMorPM + " is the hour");
     let currentWeatherType = weatherObject.current.weather[0].main;
-    let currentWeatherTypeIcon;
-    switch(currentWeatherType) {
-        // When the weather is Clear, show sun icon if hour is between 6am-6pm, otherwise show moon icon
-        case 'Clear':
-            if(isAMorPM >= 6 && isAMorPM <= 18) {
-                currentWeatherTypeIcon = 'clear-day-128.png';
-            } else {
-                currentWeatherTypeIcon = 'clear-night-128.png';
-            }
-            break;
-        case 'Clouds':
-            currentWeatherTypeIcon = 'clouds-128.png';
-            break;
-        case 'Drizzle':
-            currentWeatherTypeIcon = 'drizzle-128.png';
-            break;
-        case 'Rain':
-            currentWeatherTypeIcon = 'rain-128.png';
-            break;
-        case 'Thunderstorm':
-            currentWeatherTypeIcon = 'thunderstorm-128.png';
-            break;
-        case 'Atmosphere':
-            currentWeatherTypeIcon = 'hazy-128.png';
-            break;
-        case 'Mist':
-            currentWeatherTypeIcon = 'drizzle-128.png';
-            break;
-        case 'Haze':
-            currentWeatherTypeIcon = 'hazy-128.png';
-            break;
-        case 'Snow':
-            currentWeatherTypeIcon = 'snow-128.png';
-            break;
-    }
+    let currentWeatherTypeIcon = getWeatherIcon(currentWeatherType, 'big', isAMorPM);
     currentForecastImage.setAttribute('src', 'images/' + currentWeatherTypeIcon);
     tempSection.appendChild(currentTempParagraph);
     tempSection.appendChild(feelsLikeTempPara);
-    //tempSection.appendChild(maxTempParagraph);
-    //tempSection.appendChild(minTempParagraph);
     weatherSection.appendChild(currentForecastImage);
+
+    // Hourly Forecast ----------------------------------------------------------------------------------------------------
+    let hourlyForecastSection = document.getElementById('hourly-forecast-section');
+    let hourlyForecastList = document.getElementById('hourly-forecast-list');
+    let hourlyAMorPM;
+    hourlyForecastSection.innerHTML = '';
+    hourlyForecastList.innerHTML  = '';
+    for(let hourlyLoop = 0; hourlyLoop < 25; hourlyLoop++) {
+        let hourlyDiv = document.createElement('li');
+        let hourlyNum = (new Date(weatherObject.hourly[hourlyLoop].dt * 1000).getHours()); // goes from 0-23
+        let timeOfDayDiv = document.createElement('div');
+        timeOfDayDiv.setAttribute('class', 'hourly-forecast-time-para');
+        let hourlyWeatherType = weatherObject.hourly[hourlyLoop].weather[0].main;
+        let hourlyWeatherIcon = getWeatherIcon(hourlyWeatherType, 'small', hourlyNum);
+        if((hourlyNum >= 0 && hourlyNum <= 11)) {
+            hourlyAMorPM = 'AM';
+            if(hourlyNum == 0) {
+                hourlyNum = 12;
+            }
+        } else if(hourlyNum >= 12 && hourlyNum <= 23) {
+            hourlyAMorPM = 'PM';
+            if(hourlyNum > 12) {
+                hourlyNum = hourlyNum - 12;
+            }
+        }
+        let dayOfMonth = new Date(weatherObject.hourly[hourlyLoop].dt * 1000).getDate();
+        let hourlyTempValue =  Math.round(weatherObject.hourly[hourlyLoop].temp);
+        let hourlyProbOfPrecipitationValue = weatherObject.hourly[hourlyLoop].pop * 100; // It is shown in the form of pop: 0.65 and ranges from 0 to 1; we need percentage.
+        let hourlyWindSpeedValue = Math.round(weatherObject.hourly[hourlyLoop].wind_speed); // metric will show metre/sec, imperial will s how miles/hour
+        let hourlyWindDegValue = weatherObject.hourly[hourlyLoop].wind_deg; // N = 0, E = 90, S = 180, W = 270
+        let hourlyWindDegPara = document.createElement('p');
+        let hourlyTempPara = document.createElement('p');
+        let hourlyWeatherImage = document.createElement('img');
+        let hourlyWindDegImage = document.createElement('img');
+        let hourlyProbOfPrecipitationPara = document.createElement('p');
+        let hourlyProbOfPrecipitationDiv = document.createElement('div');
+        let hourlyWindDiv = document.createElement('div');
+        let hourlyWindPara = document.createElement('p');
+        let hourlyProbOfPrecipitationImage = document.createElement('img');
+        hourlyWindDiv.setAttribute('class', 'hourly-wind-div');
+        hourlyWeatherImage.setAttribute('class', 'hourly-weather-image');
+        hourlyWindDegImage.setAttribute('class', 'hourly-wind-deg-image');
+        hourlyWindDegImage.setAttribute('src', 'images/wind-direction-icon.png');
+        hourlyWindDegImage.style.transform = 'rotate(' + hourlyWindDegValue + 'deg)';
+        hourlyProbOfPrecipitationImage.setAttribute('src', 'images/rain-drop-1.png');
+        hourlyProbOfPrecipitationImage.setAttribute('class', 'hourly-prob-of-prec-image');
+        hourlyProbOfPrecipitationPara.innerHTML = hourlyProbOfPrecipitationValue + '%';
+        hourlyWeatherImage.setAttribute('src', 'images/' + hourlyWeatherIcon);
+        hourlyTempPara.setAttribute('class', 'hourly-temp-para');
+        hourlyTempPara.innerHTML = hourlyTempValue + '&deg;';
+        timeOfDayDiv.innerHTML = hourlyNum + ' ' + hourlyAMorPM;
+        hourlyDiv.appendChild(timeOfDayDiv);
+        hourlyDiv.appendChild(hourlyTempPara);
+        hourlyDiv.appendChild(hourlyWeatherImage);
+        hourlyProbOfPrecipitationDiv.appendChild(hourlyProbOfPrecipitationPara);
+        hourlyProbOfPrecipitationDiv.appendChild(hourlyProbOfPrecipitationImage);
+        hourlyDiv.appendChild(hourlyProbOfPrecipitationDiv);
+        if(currentTempUnit == 'F') {
+            // Show miles/hr
+            hourlyWindPara.innerHTML = hourlyWindSpeedValue + ' mph';
+        } else if (currentTempUnit == 'C') {
+            // Show km/s
+            hourlyWindPara.innerHTML = hourlyWindSpeedValue + ' km/s';
+        }
+        hourlyWindDegPara.innerHTML = hourlyWindDegValue;
+        hourlyProbOfPrecipitationDiv.setAttribute('class', 'hourly-precipitation-div');
+        hourlyDiv.setAttribute('class', 'hourly-forecast-div');
+        hourlyWindDiv.appendChild(hourlyWindPara);
+        hourlyWindDiv.appendChild(hourlyWindDegImage);
+        hourlyDiv.appendChild(hourlyWindDiv);
+        hourlyForecastList.appendChild(hourlyDiv);
+        //console.log(hourlyNum);
+    }
+    hourlyForecastSection.appendChild(hourlyForecastList);
+    
     // Weekly Forecast -----------------------------------------------------------------------------------------------------
     let weeklyForecastList = document.getElementById('weekly-forecast-list');
     weeklyForecastList.innerHTML = '';
     for(let dayNum = 0; dayNum < 8; dayNum++) {
+        isAMorPM = 6; // Show day weather icons
         let weekdayNum = new Date(weatherObject.daily[dayNum].dt * 1000).getDay();
         let dayOfMonth = new Date(weatherObject.daily[dayNum].dt * 1000).getDate();
         let weatherType = weatherObject.daily[dayNum].weather[0].main;
-        let weeklyWeatherIcon;
-        switch(weatherType) {
-            case 'Clear':
-                weeklyWeatherIcon = 'clear-day-64.png';
-                break;
-            case 'Clouds':
-                weeklyWeatherIcon = 'clouds-64.png';
-                break;
-            case 'Drizzle':
-                weeklyWeatherIcon = 'drizzle-64.png';
-                break;
-            case 'Rain':
-                weeklyWeatherIcon = 'rain-64.png';
-                break;
-            case 'Thunderstorm':
-                weeklyWeatherIcon = 'thunderstorm-64.png';
-                break;
-            case 'Atmosphere':
-                weeklyWeatherIcon = 'hazy-64.png';
-                break;
-            case 'Haze':
-                weeklyWeatherIcon = 'hazy-64.png';
-                break;
-            case 'Mist':
-                weeklyWeatherIcon = 'drizzle-128.png';
-            break;
-            case 'Snow':
-                weeklyWeatherIcon = 'snow-64.png';
-            break;
-        }
+        let weeklyWeatherIcon = getWeatherIcon(weatherType, 'small', isAMorPM);
         let weekdayText;
         switch(weekdayNum) {
             case 0: 
@@ -283,8 +321,9 @@ async function displayForecast(weatherObject) {
 
 /* Initial Setup ------------------------------------------------------------------------------------------------------------ */
 window.onload = async function() {
-    const locationObject = await findLatAndLong('Sacramento');
-    weatherObject = await getWeatherObject(locationObject.latitude, locationObject.longitude);
+    currentLocation = defaultLocation;
+    weatherObject = await getWeatherObject(defaultLocation.locationLat, defaultLocation.locationLon);
+    locationHeader.innerHTML = defaultLocation.locationName + ', ' + defaultLocation.locationState + ', ' + defaultLocation.locationCountry;
     await displayForecast(weatherObject);
     mainContent.style.opacity = "1"; 
 }
@@ -294,6 +333,141 @@ async function dynamicallyGenerateWeatherInfo() {
     // Get the location's lat and lon
     // Use lat and lon to get the weather object from the OpenWeather API
     // Dynamically populate the page
+}
+
+function getWeatherIcon(weatherType, iconSize, timeOfDay) {
+    let weatherIcon;
+    if(iconSize == 'big') {
+        if(timeOfDay >= 6 && timeOfDay <= 18) {
+            // It is daytime
+            switch(weatherType) {
+                // When the weather is Clear, show sun icon if hour is between 6am-6pm, otherwise show moon icon
+                case 'Clear':
+                    weatherIcon = 'clear-day-128.png';
+                    break;
+                case 'Clouds':
+                    weatherIcon = 'cloudy-day-128.png';
+                    break;
+                case 'Drizzle':
+                    weatherIcon = 'drizzle-128.png';
+                    break;
+                case 'Rain':
+                    weatherIcon = 'rain-128.png';
+                    break;
+                case 'Thunderstorm':
+                    weatherIcon = 'thunderstorm-128.png';
+                    break;
+                case 'Atmosphere':
+                    weatherIcon = 'hazy-128.png';
+                    break;
+                case 'Mist':
+                    weatherIcon = 'drizzle-128.png';
+                    break;
+                case 'Haze':
+                    weatherIcon = 'hazy-128.png';
+                    break;
+                case 'Snow':
+                    weatherIcon = 'snow-128.png';
+                    break;
+            }
+        } else {
+            // It is nighttime
+            switch(weatherType) {
+                // When the weather is Clear, show sun icon if hour is between 6am-6pm, otherwise show moon icon
+                case 'Clear':
+                    weatherIcon = 'clear-night-128.png';
+                    break;
+                case 'Clouds':
+                    weatherIcon = 'clouds-128.png';
+                    break;
+                case 'Drizzle':
+                    weatherIcon = 'drizzle-128.png';
+                    break;
+                case 'Rain':
+                    weatherIcon = 'rainy-night-128.png';
+                    break;
+                case 'Thunderstorm':
+                    weatherIcon = 'thunderstorm-128.png';
+                    break;
+                case 'Atmosphere':
+                    weatherIcon = 'hazy-128.png';
+                    break;
+                case 'Mist':
+                    weatherIcon = 'drizzle-128.png';
+                    break;
+                case 'Haze':
+                    weatherIcon = 'hazy-128.png';
+                    break;
+                case 'Snow':
+                    weatherIcon = 'snow-128.png';
+                    break;
+            }
+        }
+        
+    } else if(iconSize == 'small') {
+        if(timeOfDay >= 6 && timeOfDay <= 18) {
+            switch(weatherType) {
+                case 'Clear':
+                    weatherIcon = 'clear-day-64.png';
+                    break;
+                case 'Clouds':
+                    weatherIcon = 'cloudy-day-64.png';
+                    break;
+                case 'Drizzle':
+                    weatherIcon = 'drizzle-64.png';
+                    break;
+                case 'Rain':
+                    weatherIcon = 'rainy-day-64.png';
+                    break;
+                case 'Thunderstorm':
+                    weatherIcon = 'thunderstorm-64.png';
+                    break;
+                case 'Atmosphere':
+                    weatherIcon = 'hazy-64.png';
+                    break;
+                case 'Haze':
+                    weatherIcon = 'hazy-64.png';
+                    break;
+                case 'Mist':
+                    weatherIcon = 'drizzle-128.png';
+                break;
+                case 'Snow':
+                    weatherIcon = 'snow-64.png';
+                break;
+            }
+        } else {
+            switch(weatherType) {
+                case 'Clear':
+                    weatherIcon = 'clear-night-64.png';
+                    break;
+                case 'Clouds':
+                    weatherIcon = 'cloudy-night-64.png';
+                    break;
+                case 'Drizzle':
+                    weatherIcon = 'drizzle-64.png';
+                    break;
+                case 'Rain':
+                    weatherIcon = 'rainy-night-64.png';
+                    break;
+                case 'Thunderstorm':
+                    weatherIcon = 'thunderstorm-64.png';
+                    break;
+                case 'Atmosphere':
+                    weatherIcon = 'hazy-64.png';
+                    break;
+                case 'Haze':
+                    weatherIcon = 'hazy-64.png';
+                    break;
+                case 'Mist':
+                    weatherIcon = 'drizzle-128.png';
+                break;
+                case 'Snow':
+                    weatherIcon = 'snow-64.png';
+                break;
+            }
+        }
+    }
+    return weatherIcon;
 }
 
 
