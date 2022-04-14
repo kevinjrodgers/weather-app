@@ -212,7 +212,7 @@ async function displayForecast(weatherObject) {
         }
         let dayOfMonth = new Date(weatherObject.hourly[hourlyLoop].dt * 1000).getDate();
         let hourlyTempValue =  Math.round(weatherObject.hourly[hourlyLoop].temp);
-        let hourlyProbOfPrecipitationValue = weatherObject.hourly[hourlyLoop].pop * 100; // It is shown in the form of pop: 0.65 and ranges from 0 to 1; we need percentage.
+        let hourlyProbOfPrecipitationValue = Math.round(weatherObject.hourly[hourlyLoop].pop * 100); // It is shown in the form of pop: 0.65 and ranges from 0 to 1; we need percentage.
         let hourlyWindSpeedValue = Math.round(weatherObject.hourly[hourlyLoop].wind_speed); // metric will show metre/sec, imperial will s how miles/hour
         let hourlyWindDegValue = weatherObject.hourly[hourlyLoop].wind_deg; // N = 0, E = 90, S = 180, W = 270
         let hourlyWindDegPara = document.createElement('p');
@@ -263,12 +263,23 @@ async function displayForecast(weatherObject) {
     // Weekly Forecast -----------------------------------------------------------------------------------------------------
     let weeklyForecastList = document.getElementById('weekly-forecast-list');
     weeklyForecastList.innerHTML = '';
+    let leftScrollArrow = document.createElement('button');
+    let rightScrollArrow = document.createElement('button');
     for(let dayNum = 0; dayNum < 8; dayNum++) {
         isAMorPM = 6; // Show day weather icons
         let weekdayNum = new Date(weatherObject.daily[dayNum].dt * 1000).getDay();
         let dayOfMonth = new Date(weatherObject.daily[dayNum].dt * 1000).getDate();
         let weatherType = weatherObject.daily[dayNum].weather[0].main;
-        let weeklyWeatherIcon = getWeatherIcon(weatherType, 'small', isAMorPM);
+        let dailyWeatherIcon = getWeatherIcon(weatherType, 'small', isAMorPM);
+        let dailyProbOfPrecipitationDiv = document.createElement('div');
+        dailyProbOfPrecipitationDiv.setAttribute('class', 'daily-prob-of-prec-div')
+        let dailyProbOfPrecipitationPara = document.createElement('p');
+        dailyProbOfPrecipitationPara.setAttribute('class', 'daily-prob-of-prec-para')
+        let weeklyProbOfPrecipitationValue = Math.round(weatherObject.daily[dayNum].pop * 100);
+        dailyProbOfPrecipitationPara.innerHTML = weeklyProbOfPrecipitationValue + '%';
+        let dailyProbOfPrecipitationImage = document.createElement('img');
+        dailyProbOfPrecipitationImage.setAttribute('src', 'images/rain-drop-1.png')
+        dailyProbOfPrecipitationImage.setAttribute('class', 'daily-prob-of-prec-image');
         let weekdayText;
         switch(weekdayNum) {
             case 0: 
@@ -301,8 +312,8 @@ async function displayForecast(weatherObject) {
         let dayNumPara = document.createElement('p');
         let dailyForecastImage = document.createElement('img');
         dayNumPara.setAttribute('class', 'day-num-para');
-        dailyForecastImage.setAttribute('class', 'weekly-forecast-image');
-        dailyForecastImage.setAttribute('src', 'images/' + weeklyWeatherIcon);
+        dailyForecastImage.setAttribute('class', 'daily-forecast-image');
+        dailyForecastImage.setAttribute('src', 'images/' + dailyWeatherIcon);
         dailyForecastMaxTemp.innerHTML = 'H: ' + Math.round(weatherObject.daily[dayNum].temp.max) + '&deg;';
         dailyForecastMinTemp.innerHTML = 'L: ' + Math.round(weatherObject.daily[dayNum].temp.min) + '&deg;';
         dayNumPara.innerHTML = weekdayText + ' ' + dayOfMonth;
@@ -311,7 +322,11 @@ async function displayForecast(weatherObject) {
         dailyTempDiv.appendChild(dailyForecastMinTemp);
         dailyForecast.appendChild(dayNumPara);
         dailyForecast.appendChild(dailyTempDiv);
+        dailyProbOfPrecipitationDiv.appendChild(dailyProbOfPrecipitationPara);
+        dailyProbOfPrecipitationDiv.appendChild(dailyProbOfPrecipitationImage);
+        dailyForecast.appendChild(dailyProbOfPrecipitationDiv);
         dailyForecast.appendChild(dailyForecastImage);
+        
         weeklyForecastList.appendChild(dailyForecast);
         // Will reveal the loaded information
         mainContent.style.opacity = "1"; 
@@ -326,13 +341,6 @@ window.onload = async function() {
     locationHeader.innerHTML = defaultLocation.locationName + ', ' + defaultLocation.locationState + ', ' + defaultLocation.locationCountry;
     await displayForecast(weatherObject);
     mainContent.style.opacity = "1"; 
-}
-
-async function dynamicallyGenerateWeatherInfo() {
-    // Need to get the input from the location fields
-    // Get the location's lat and lon
-    // Use lat and lon to get the weather object from the OpenWeather API
-    // Dynamically populate the page
 }
 
 function getWeatherIcon(weatherType, iconSize, timeOfDay) {

@@ -10,6 +10,7 @@ Technologies used:
     Iconfinder.com
     List of Countries: https://www.technicalkeeda.com/html-tutorials/all-countries-drop-down-list-in-html
     List of US States: https://gist.github.com/akrug23/6631559
+    For box shadowing: https://www.joshwcomeau.com/css/designing-shadows/
 
     Icon Sources:
         Wind Direction Icon: <a href="https://www.flaticon.com/free-icons/navigation" title="navigation icons">Navigation icons created by Freepik - Flaticon</a>

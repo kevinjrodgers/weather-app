@@ -16,6 +16,8 @@ html, body {
     flex-direction: column;
     opacity: 0;
     transition-duration: 1s;
+    /* scroll bar format: thumb color, track color */
+    scrollbar-color: rgb(221, 148, 11) rgb(102, 96, 96);
 }
 
 #top-section {
@@ -167,10 +169,12 @@ html, body {
     flex-direction: row;
     justify-content: start;
     overflow-x: auto;
-    gap: 40px; 
+    gap: 20px; 
     list-style-type: none;
     margin: 0 auto;
     padding: 0;
+    margin-bottom: 50px;
+    padding-bottom: 20px;
 }
 
 .hourly-forecast-div {
@@ -235,6 +239,7 @@ html, body {
     list-style-type: none;
     margin: 0 auto;
     padding: 0;
+    padding-bottom: 20px;
 }
 
 .daily-forecast {
@@ -245,13 +250,15 @@ html, body {
     border-bottom: 2px solid #afa292;
 }
 
-.daily-forecast p {
+/*.daily-forecast p {
     width: 75px;
 }
+*/
 
 .day-num-para {
     font-size: 1.25em;
     font-weight: bold;
+    width: 80px;
 }
 
 .daily-temp-div {
@@ -262,11 +269,28 @@ html, body {
 
 .daily-temp-div p {
     width: 65px;
+    margin: 0;
 }
 
-.weekly-forecast-image {
+.daily-forecast-image {
     width: 64px;
     height: 64px;
+}
+
+.daily-prob-of-prec-div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: end;
+    width: 60px;
+}
+
+.daily-prob-of-prec-para {
+}
+
+.daily-prob-of-prec-image {
+    width: 24px;
+    height: 24px;
 }
 
 @media only screen and (min-width: 650px) {
@@ -283,6 +307,7 @@ html, body {
 
     .day-num-para {
         text-align: center;
+        width: 80px;
     }
 
     .daily-temp-div {
@@ -290,38 +315,24 @@ html, body {
     }
 
     #weekly-forecast-list {
-        gap: 40px;
+        gap: 20px;
         overflow-x: scroll;
         width: 90%;
         justify-content: start;
     }
 
+    .daily-prob-of-prec-div {
+        order: 99;
+    }
 
-     /* width */
-::-webkit-scrollbar {
-    width: 10px;
-  }
-  
-  /* Track */
-  ::-webkit-scrollbar-track {
-    background: #f1f1f1;
-  }
-  
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-    background: #888;
-  }
-  
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background: #555;
-  } 
+    .daily-prob-of-prec-para {
+        margin: 0;
+    }
 }
 
-
-@media only screen and (min-width: 1500px) {
+@media only screen and (min-width: 1350px) {
     #weekly-forecast-list {
-        gap: 40px;
+        gap: 20px;
         overflow-x: auto;
         width: 90%;
         justify-content: center;
@@ -329,5 +340,9 @@ html, body {
 
     .daily-forecast {
         height: 180px;
+    }
+
+    #hourly-forecast-list {
+        width: 1204px;
     }
 }
