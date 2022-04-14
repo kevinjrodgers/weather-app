@@ -112,11 +112,11 @@ async function findLatAndLong(locationName) {
         let weatherAPIId = 'bc21462a4e2db9c1ba7c412127c33e2c';
         let fetchString;
         if(countrySelection != 'US') {
-            fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + countrySelection + '&appid=' + weatherAPIId;
+            fetchString = 'https://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + countrySelection + '&appid=' + weatherAPIId;
             console.log(fetchString);
         } else {
             // Default country is US
-            fetchString = 'http://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + stateSelection + ',' + countrySelection + '&appid=' + weatherAPIId;
+            fetchString = 'https://api.openweathermap.org/geo/1.0/direct?q=' + locationName + ',' + stateSelection + ',' + countrySelection + '&appid=' + weatherAPIId;
             console.log(fetchString);
         }
         const response = await fetch(fetchString, {mode: 'cors'});
