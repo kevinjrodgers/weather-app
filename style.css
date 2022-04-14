@@ -8,8 +8,6 @@ html, body {
     /*background-color: #E5D4C0;*/
     background-color: #FFD7B0;
     min-width: 480px;
-    max-width: 100%;
-    overflow-x: hidden;
 }
 
 #content {
