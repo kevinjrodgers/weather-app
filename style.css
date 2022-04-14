@@ -5,7 +5,8 @@ html, body {
     margin: 0;
     padding: 0;
     color: #1A181B;
-    background-color: #E5D4C0;
+    /*background-color: #E5D4C0;*/
+    background-color: #FFD7B0;
     min-width: 480px;
 }
 
@@ -44,8 +45,8 @@ html, body {
 }
 
 #hamburger-menu-form {
-    /*background-color: #756048;*/
-    background-color: #60935D;
+    /*background-color: #60935D;*/
+    background-color: #9B7255;
     width: 350px;
     position: absolute;
     top: 74.15px;
